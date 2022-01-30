@@ -1,13 +1,19 @@
-from django.shortcuts import render
+import datetime
+import jwt
+from django.contrib.auth import get_user_model
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .serializers import UserSerializer
+from django.utils.translation import gettext_lazy as _
+
+
 from .models import User
+from .serializers import UserSerializer
 
-import jwt, datetime
+User = get_user_model()
+
 
 # Create your views here.
 class ResisterView(APIView):
@@ -29,10 +35,10 @@ class LoginView(APIView):
         user = User.objects.filter(email=email).first()
 
         if user is None:
-            raise AuthenticationFailed('User not found!')
+            raise AuthenticationFailed(_('User not found!'))
 
         if not user.check_password(password):
-            raise AuthenticationFailed('Incorrect password!')
+            raise AuthenticationFailed(_('Incorrect password!'))
 
         payload = {
             'id': user.id,
@@ -56,13 +62,13 @@ class UserView(APIView):
         token = request.COOKIES.get('jwt')
 
         if not token:
-            raise AuthenticationFailed('Unauthenticated!')
+            raise AuthenticationFailed(_('Unauthenticated!'))
 
         try:
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
 
         except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+            raise AuthenticationFailed(_('Unauthenticated, token is expired!'))
 
         user = User.objects.filter(id=payload['id']).first()
         serializer = UserSerializer(user)
