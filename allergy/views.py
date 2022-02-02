@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
 
-# Create your views here.
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -24,6 +23,8 @@ class allergyCreateApi(ApiAuthMixin, APIView):
         }, status=status.HTTP_201_CREATED)
 
 
+
+
 class allergyDetailApi(ApiAuthMixin, APIView):
     def get(self, request, *args, **kwargs):
         """
@@ -33,3 +34,19 @@ class allergyDetailApi(ApiAuthMixin, APIView):
         allergy = Allergy.objects.get(pk=user_id)
         serializer = AllergySerializer(allergy)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    def put(self, request, *args, **kwargs):
+
+        if kwargs.get('user_id') is None:
+            return Response("invalid request", status=status.HTTP_400_BAD_REQUEST)
+        else:
+            user_id = kwargs.get('user_id')
+            allergy = Allergy.objects.get(id=user_id)
+
+            update_allergy_serializer = AllergySerializer(allergy, data=request.data)
+            if update_allergy_serializer.is_valid():
+                update_allergy_serializer.save()
+                return Response(update_allergy_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response("invalid request", status=status.HTTP_400_BAD_REQUEST)
