@@ -44,10 +44,14 @@ class LoginView(PublicApiMixin, APIView):
         user = User.objects.filter(email=email).first()
 
         if user is None:
-            raise AuthenticationFailed(_('User not found!'))
+            return Response({
+                "message": "email is wrong"
+            }, status=status.HTTP_403_FORBIDDEN)
 
         if not user.check_password(password):
-            raise AuthenticationFailed(_('Incorrect password!'))
+            return Response({
+                "message": "password is wrong"
+            }, status=status.HTTP_403_FORBIDDEN)
 
         payload = {
             'id': user.id,
