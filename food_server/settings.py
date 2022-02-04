@@ -7,6 +7,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
+
+from django.conf.global_settings import SESSION_COOKIE_SAMESITE
 from django.utils.translation import ugettext_lazy as _
 import os, json
 from django.core.exceptions import ImproperlyConfigured
@@ -128,3 +130,4 @@ AUTH_USER_MODEL = 'users.User'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+SESSION_COOKIE_SAMESITE = None

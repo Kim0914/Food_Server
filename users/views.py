@@ -67,6 +67,7 @@ class LoginView(PublicApiMixin, APIView):
         response.data = {
             'jwt': token
         }
+        print(response.cookies)
         return response
 
 
