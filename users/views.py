@@ -65,9 +65,10 @@ class LoginView(PublicApiMixin, APIView):
 
         response.set_cookie(key='jwt', value=token, httponly=True, samesite=None, secure=True)
         response.data = {
-            'jwt': token
+            'jwt': token,
+            'username': user.name,
         }
-        print(response.cookies)
+        # print(response.cookies)
         return response
 
 
