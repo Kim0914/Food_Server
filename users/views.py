@@ -1,23 +1,22 @@
 import datetime
 import jwt
+
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
-from rest_framework import status, serializers
+from django.utils.translation import gettext_lazy as _
 
+
+from rest_framework import status, serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from django.utils.translation import gettext_lazy as _
-
 
 from users.mixins import ApiAuthMixin, PublicApiMixin
 from .models import User
 from .serializers import UserSerializer, PasswordChangeSerializer
 
 User = get_user_model()
-
 
 # Create your views here.
 class ResisterView(PublicApiMixin, APIView):
@@ -26,6 +25,8 @@ class ResisterView(PublicApiMixin, APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
 
 
 class LoginView(PublicApiMixin, APIView):
