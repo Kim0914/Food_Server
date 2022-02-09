@@ -17,21 +17,23 @@ class SafeJWTAuthentication(BaseAuthentication):
     """
 
     def authenticate(self, request):
-        authorization_header = request.headers.get('Authorization')
+        jwt_header = request.headers.get('Cookie')
 
-        if not authorization_header:
+        if not jwt_header:
             return None
 
         try:
-            prefix = authorization_header.split(' ')[0]
+            prefix = jwt_header.split('=')[0]
+
             if prefix.lower() != 'jwt':
                 raise exceptions.AuthenticationFailed('Token is not jwt')
 
-            access_token = authorization_header.split(' ')[1]
+            access_token = jwt_header.split('=')[1]
+
             payload = jwt.decode(
                 access_token, settings.SECRET_KEY, algorithms=['HS256']
             )
-            # print(payload)
+
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('access_token expired')
         except IndexError:

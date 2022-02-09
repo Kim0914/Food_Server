@@ -2,7 +2,8 @@ import datetime
 import jwt
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from rest_framework import status
+from django.contrib.auth.hashers import check_password
+from rest_framework import status, serializers
 
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
@@ -13,8 +14,7 @@ from django.utils.translation import gettext_lazy as _
 
 from users.mixins import ApiAuthMixin, PublicApiMixin
 from .models import User
-from .serializers import UserSerializer
-
+from .serializers import UserSerializer, PasswordChangeSerializer
 
 User = get_user_model()
 
@@ -89,6 +89,38 @@ class UserView(PublicApiMixin, APIView):
         serializer = UserSerializer(user)
 
         return Response(serializer.data)
+
+
+    def put(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed(_('Unauthenticated!'))
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed(_('Unauthenticated, token is expired!'))
+
+        user = User.objects.filter(id=payload['id']).first()
+
+        old_password = request.data['oldpassword']
+        if not check_password(old_password, user.password):
+            raise serializers.ValidationError(
+                _("passwords do not match")
+            )
+
+        serializer = PasswordChangeSerializer(data=request.data, partial=True)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_409_CONFLICT)
+
+        validated_data = serializer.validated_data
+        serializer.update(user=user, validated_data=validated_data)
+        return Response({
+            "message": "Change password success"
+        }, status=status.HTTP_200_OK)
 
 
 class LogoutView(PublicApiMixin, APIView):

@@ -23,30 +23,27 @@ class allergyCreateApi(ApiAuthMixin, APIView):
         }, status=status.HTTP_201_CREATED)
 
 
-
-
 class allergyDetailApi(ApiAuthMixin, APIView):
     def get(self, request, *args, **kwargs):
         """
         user에 맞는 allergy 선택
         """
-        user_id = kwargs["user_id"]
-        allergy = Allergy.objects.get(pk=user_id)
+        allergy = Allergy.objects.get(user_id=request.user.id)
         serializer = AllergySerializer(allergy)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
     def put(self, request, *args, **kwargs):
+        """
+        user에 맞는 allergy 정보 수정
+        """
+        allergy = Allergy.objects.get(user_id=request.user.id)
 
-        if kwargs.get('user_id') is None:
-            return Response("invalid request", status=status.HTTP_400_BAD_REQUEST)
+        update_allergy_serializer = AllergySerializer(allergy, data=request.data)
+        if update_allergy_serializer.is_valid():
+            update_allergy_serializer.save()
+            return Response({
+                "message": "Allergy info modify success"
+            }, status=status.HTTP_200_OK)
         else:
-            user_id = kwargs.get('user_id')
-            allergy = Allergy.objects.get(id=user_id)
-
-            update_allergy_serializer = AllergySerializer(allergy, data=request.data)
-            if update_allergy_serializer.is_valid():
-                update_allergy_serializer.save()
-                return Response(update_allergy_serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response("invalid request", status=status.HTTP_400_BAD_REQUEST)
+            return Response("invalid request", status=status.HTTP_400_BAD_REQUEST)

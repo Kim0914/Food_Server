@@ -21,3 +21,24 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    oldpassword = serializers.CharField(write_only=True)
+    newpassword = serializers.CharField(write_only=True)
+
+
+    def update(self, user, validated_data):
+        oldpassword = validated_data.pop('oldpassword', None)
+        newpassword = validated_data.pop('newpassword', None)
+        print(oldpassword)
+        print(newpassword)
+
+        if oldpassword == newpassword:
+            raise serializers.ValidationError(
+                "oldpassword and newpassword are same")
+
+        print(newpassword)
+        user.set_password(newpassword)
+        user.save()
+        return user
