@@ -1,8 +1,12 @@
 import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
+
+from django.utils.translation import gettext_lazy as _
+
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 
 from users.models import User
 
@@ -17,27 +21,16 @@ class SafeJWTAuthentication(BaseAuthentication):
     """
 
     def authenticate(self, request):
-        jwt_header = request.headers.get('Cookie')
+        token = request.COOKIES.get('jwt')
 
-        if not jwt_header:
-            return None
+        if not token:
+            raise AuthenticationFailed(_('Unauthenticated!'))
 
         try:
-            prefix = jwt_header.split('=')[0]
-
-            if prefix.lower() != 'jwt':
-                raise exceptions.AuthenticationFailed('Token is not jwt')
-
-            access_token = jwt_header.split('=')[1]
-
-            payload = jwt.decode(
-                access_token, settings.SECRET_KEY, algorithms=['HS256']
-            )
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
 
         except jwt.ExpiredSignatureError:
-            raise exceptions.AuthenticationFailed('access_token expired')
-        except IndexError:
-            raise exceptions.AuthenticationFailed('Token prefix missing')
+            raise AuthenticationFailed(_('Unauthenticated, token is expired!'))
 
         return self.authenticate_credentials(request, payload['id'])
 
