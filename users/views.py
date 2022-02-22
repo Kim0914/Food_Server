@@ -36,7 +36,7 @@ class LoginView(PublicApiMixin, APIView):
 
         if (email is None) or (password is None):
             return Response({
-                "message": "email,password required"
+                "message": "이메일, 비밀번호는 반드시 입력해야합니다."
             }, status=status.HTTP_400_BAD_REQUEST)
 
         '''
@@ -46,12 +46,12 @@ class LoginView(PublicApiMixin, APIView):
 
         if user is None:
             return Response({
-                "message": "email is wrong"
+                "message": "등록된 사용자가 아닙니다. 이메일을 다시 확인해주세요."
             }, status=status.HTTP_403_FORBIDDEN)
 
         if not user.check_password(password):
             return Response({
-                "message": "password is wrong"
+                "message": "비밀번호가 잘못되었습니다."
             }, status=status.HTTP_403_FORBIDDEN)
 
         payload = {
